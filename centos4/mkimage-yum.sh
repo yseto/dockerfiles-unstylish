@@ -143,6 +143,7 @@ fi
 # change yum repos
 sed -i 's,mirror\.centos\.org/centos/\$releasever/,vault.centos.org/4.9/,g' "$target"/etc/yum.repos.d/*.repo
 sed -i 's/^mirrorlist/#mirrorlist/g; s/^#baseurl/baseurl/g' "$target"/etc/yum.repos.d/*.repo
+sed -i 's/$basearch/i386/g' "$target"/etc/yum.repos.d/*.repo
 
 tar --numeric-owner -cf os_image.tar -C "$target" --exclude=proc .
 docker import os_image.tar $name:$version
