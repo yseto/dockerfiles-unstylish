@@ -81,7 +81,7 @@ fi
 if [[ -n "$install_groups" ]];
 then
     yum -c "$yum_config" --installroot="$target" --releasever=/ --setopt=tsflags=nodocs \
-        --setopt=group_package_types=mandatory -y groupinstall $install_groups
+        --setopt=group_package_types=mandatory -y groupinstall Core
 fi
 
 if [[ -n "$install_packages" ]];
