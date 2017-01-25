@@ -100,13 +100,22 @@ NETWORKING=yes
 HOSTNAME=localhost.localdomain
 EOF
 
-# broken rpmdb repair and install group
+# broken rpmdb 
 cp /etc/resolv.conf "$target"/etc/resolv.conf
 chroot "$target" /bin/bash -c 'rm -f /var/lib/rpm/*'
-chroot "$target" /bin/bash -c 'yum install -y yum'
+
+# repair and install group ref /usr/lib/rinse/centos-4/post-install.sh
+chroot "$target" /bin/bash -c 'yum install -y yum passwd vim-minimal authconfig'
+chroot "$target" /bin/bash -c '/usr/bin/authconfig --enableshadow --kickstart'
 chroot "$target" /bin/bash -c "yum groupinstall -y $install_groups"
-rm -f "$target"/etc/resolv.conf
+
+# change yum repos
+sed -i 's,mirror\.centos\.org/centos/\$releasever/,vault.centos.org/4.9/,g' "$target"/etc/yum.repos.d/*.repo
+sed -i 's/^mirrorlist/#mirrorlist/g; s/^#baseurl/baseurl/g' "$target"/etc/yum.repos.d/*.repo
+sed -i 's/$basearch/i386/g' "$target"/etc/yum.repos.d/*.repo
 mv -f "$target"/etc/yum.conf.rpmnew "$target"/etc/yum.conf
+
+rm -f "$target"/etc/resolv.conf
 
 # effectively: febootstrap-minimize --keep-zoneinfo --keep-rpmdb --keep-services "$target".
 #  locales
@@ -140,10 +149,7 @@ if [ -z "$version" ]; then
     version=$name
 fi
 
-# change yum repos
-sed -i 's,mirror\.centos\.org/centos/\$releasever/,vault.centos.org/4.9/,g' "$target"/etc/yum.repos.d/*.repo
-sed -i 's/^mirrorlist/#mirrorlist/g; s/^#baseurl/baseurl/g' "$target"/etc/yum.repos.d/*.repo
-sed -i 's/$basearch/i386/g' "$target"/etc/yum.repos.d/*.repo
+chmod 755 "$target"
 
 tar --numeric-owner -cf os_image.tar -C "$target" --exclude=proc .
 docker import os_image.tar $name:$version
